@@ -3,6 +3,10 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// ADD THESE LINES:
+set_time_limit(0);  // No time limit
+ini_set('memory_limit', '512M');  // Increase memory
+
 // Autoload dependencies
 require_once 'vendor/autoload.php';
 require_once 'src/ExcelToMySQLConverter.php';

@@ -17,9 +17,16 @@ class ExcelToMySQLConverter {
     
     public function __construct($host, $dbname, $username, $password) {
         try {
-            $this->pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", 
+            // First connect without database to create it if needed
+            $this->pdo = new PDO("mysql:host=$host;charset=utf8mb4", 
                                  $username, $password);
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            // Create database if not exists
+            $this->pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname`");
+            $this->pdo->exec("USE `$dbname`");
+            
+            // Now create the schema
             $this->createDatabaseSchema();
         } catch(PDOException $e) {
             die("Connection failed: " . $e->getMessage());
@@ -288,6 +295,7 @@ class ExcelToMySQLConverter {
     
     /**
      * Process individual cell
+     * FIXED: Updated method names for newer PhpSpreadsheet versions
      */
     private function processCell($cell, $sheetId, $rowNum) {
         $cellAddress = $cell->getCoordinate();
@@ -297,8 +305,8 @@ class ExcelToMySQLConverter {
         // Get cell style information
         $style = $this->extractCellStyle($cell);
         
-        // Check if cell has formula
-        if ($cell->hasFormula()) {
+        // Check if cell has formula - FIXED: changed from hasFormula() to isFormula()
+        if ($cell->isFormula()) {
             $this->processDependentCell($cell, $sheetId, $rowNum, $colNum, $colLetter, $style);
         } else {
             $this->processIndependentCell($cell, $sheetId, $rowNum, $colNum, $colLetter, $style);
@@ -307,6 +315,7 @@ class ExcelToMySQLConverter {
     
     /**
      * Process independent (non-formula) cell
+     * FIXED: Updated hyperlink and comment access
      */
     private function processIndependentCell($cell, $sheetId, $rowNum, $colNum, $colLetter, $style) {
         $stmt = $this->pdo->prepare("
@@ -325,8 +334,16 @@ class ExcelToMySQLConverter {
         $formattedValue = $cell->getFormattedValue();
         $valueType = $this->determineValueType($value);
         $numberFormat = $cell->getStyle()->getNumberFormat()->getFormatCode();
-        $hyperlink = $cell->hasHyperlink() ? $cell->getHyperlink()->getUrl() : null;
-        $comment = $cell->getComment() ? $cell->getComment()->getText()->getPlainText() : null;
+        
+        // FIXED: Changed from hasHyperlink() to getHyperlink()
+        $hyperlink = $cell->getHyperlink() ? $cell->getHyperlink()->getUrl() : null;
+        
+        // FIXED: Get comment from worksheet instead of cell
+        $comment = null;
+        $sheet = $cell->getWorksheet();
+        if ($sheet->getComment($cell->getCoordinate())) {
+            $comment = $sheet->getComment($cell->getCoordinate())->getText()->getPlainText();
+        }
         
         $metadata = json_encode([
             'coordinate' => $cell->getCoordinate(),
@@ -343,6 +360,7 @@ class ExcelToMySQLConverter {
     
     /**
      * Process dependent (formula) cell
+     * FIXED: Updated hyperlink, comment, and merge check
      */
     private function processDependentCell($cell, $sheetId, $rowNum, $colNum, $colLetter, $style) {
         $stmt = $this->pdo->prepare("
@@ -363,8 +381,16 @@ class ExcelToMySQLConverter {
         $formattedValue = $cell->getFormattedValue();
         $valueType = $this->determineValueType($calculatedValue);
         $numberFormat = $cell->getStyle()->getNumberFormat()->getFormatCode();
-        $hyperlink = $cell->hasHyperlink() ? $cell->getHyperlink()->getUrl() : null;
-        $comment = $cell->getComment() ? $cell->getComment()->getText()->getPlainText() : null;
+        
+        // FIXED: Changed from hasHyperlink() to getHyperlink()
+        $hyperlink = $cell->getHyperlink() ? $cell->getHyperlink()->getUrl() : null;
+        
+        // FIXED: Get comment from worksheet instead of cell
+        $comment = null;
+        $sheet = $cell->getWorksheet();
+        if ($sheet->getComment($cell->getCoordinate())) {
+            $comment = $sheet->getComment($cell->getCoordinate())->getText()->getPlainText();
+        }
         
         // Extract formula type (VLOOKUP, SUM, etc.)
         $formulaType = $this->extractFormulaType($formula);
@@ -377,10 +403,11 @@ class ExcelToMySQLConverter {
         $hasError = is_string($calculatedValue) && strpos($calculatedValue, '#') === 0;
         $errorMessage = $hasError ? $calculatedValue : null;
         
+        // FIXED: Changed from isMergeRangeValueCell() to isInMergeRange()
         $metadata = json_encode([
             'coordinate' => $cell->getCoordinate(),
             'data_type' => $cell->getDataType(),
-            'is_merged' => $cell->isMergeRangeValueCell()
+            'is_merged' => $cell->isInMergeRange()
         ]);
         
         $stmt->execute([
@@ -833,22 +860,22 @@ class ExcelToMySQLConverter {
     }
 }
 
-// Usage example
+// Usage example - FIXED: Using correct credentials for XAMPP
 try {
-    $converter = new ExcelToMySQLConverter('localhost', 'excel_db', 'username', 'password');
+    $converter = new ExcelToMySQLConverter('localhost', 'excel_db', 'root', '');
     
     // Import Excel file
-    $workbookId = $converter->importExcel('path/to/your/excel_file.xlsx');
+    // $workbookId = $converter->importExcel('path/to/your/excel_file.xlsx');
     
     // Create user-friendly views for phpMyAdmin
-    $converter->createUserFriendlyViews();
+    // $converter->createUserFriendlyViews();
     
     // Example: Get cell information
-    $cellInfo = $converter->getCellInfo(1, 'A1');
-    print_r($cellInfo);
+    // $cellInfo = $converter->getCellInfo(1, 'A1');
+    // print_r($cellInfo);
     
     // Example: Update a cell value
-    $converter->updateCellValue(1, 'B2', 'New Value');
+    // $converter->updateCellValue(1, 'B2', 'New Value');
     
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();

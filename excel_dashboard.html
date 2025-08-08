@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Web Application - Enhanced</title>
+    <title>Excel Web Application - Dynamic Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -13,86 +13,38 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #f0f2f5;
         }
 
-        .app-container {
-            background: rgba(255, 255, 255, 0.95);
-            min-height: 100vh;
-            backdrop-filter: blur(10px);
-        }
-
-        /* Header */
+        /* Header Navigation */
         .header {
-            background: linear-gradient(135deg, #217346 0%, #2a9d5c 100%);
+            background: #217346;
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .header h1 {
-            font-size: 22px;
+            font-size: 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-weight: 600;
+            gap: 10px;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .header-actions select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.1);
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .header-actions select option {
-            background: #217346;
-        }
-
-        .header-actions button {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.15);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .header-actions button:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-1px);
-        }
-
-        /* Sheet Tabs */
         .sheet-tabs {
-            background: white;
+            background: #fff;
             border-bottom: 2px solid #e0e0e0;
-            padding: 0 24px;
+            padding: 0 20px;
             display: flex;
-            gap: 4px;
+            gap: 5px;
             overflow-x: auto;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .sheet-tab {
-            padding: 10px 24px;
+            padding: 8px 20px;
             background: #f8f9fa;
             border: 1px solid #e0e0e0;
             border-bottom: none;
@@ -100,8 +52,6 @@
             position: relative;
             top: 2px;
             transition: all 0.3s;
-            font-size: 14px;
-            border-radius: 8px 8px 0 0;
         }
 
         .sheet-tab:hover {
@@ -109,19 +59,18 @@
         }
 
         .sheet-tab.active {
-            background: white;
-            border-bottom: 2px solid white;
-            font-weight: 600;
+            background: #fff;
+            border-bottom: 2px solid #fff;
+            font-weight: bold;
             color: #217346;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
         }
 
         /* Toolbar */
         .toolbar {
-            background: white;
-            padding: 12px 24px;
+            background: #fff;
+            padding: 10px 20px;
             display: flex;
-            gap: 24px;
+            gap: 20px;
             align-items: center;
             border-bottom: 1px solid #e0e0e0;
         }
@@ -129,60 +78,33 @@
         .formula-bar {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-grow: 1;
         }
 
         .cell-reference {
             background: #f8f9fa;
-            padding: 8px 16px;
+            padding: 5px 15px;
             border: 1px solid #dadce0;
-            border-radius: 6px;
             min-width: 80px;
-            font-weight: 600;
-            font-family: 'Courier New', monospace;
+            font-weight: bold;
         }
 
         .formula-input {
             flex-grow: 1;
-            padding: 8px 12px;
+            padding: 5px 10px;
             border: 1px solid #dadce0;
-            border-radius: 6px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .formula-input:focus {
-            outline: none;
-            border-color: #217346;
-            box-shadow: 0 0 0 3px rgba(33, 115, 70, 0.1);
-        }
-
-        .apply-btn {
-            padding: 8px 16px;
-            background: #217346;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .apply-btn:hover {
-            background: #2a9d5c;
-            transform: translateY(-1px);
         }
 
         /* Excel Grid */
         .excel-container {
-            background: white;
-            margin: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            background: #fff;
+            margin: 20px;
+            border: 1px solid #dadce0;
             overflow: auto;
-            height: calc(100vh - 280px);
+            height: calc(100vh - 200px);
             position: relative;
         }
 
@@ -190,19 +112,18 @@
             border-collapse: collapse;
             font-size: 13px;
             position: relative;
-            width: 100%;
         }
 
         .excel-grid th {
-            background: linear-gradient(to bottom, #f8f9fa, #f0f1f3);
+            background: #f8f9fa;
             border: 1px solid #dadce0;
-            padding: 8px 12px;
+            padding: 5px 10px;
             position: sticky;
             top: 0;
             z-index: 10;
-            min-width: 100px;
+            min-width: 80px;
             text-align: center;
-            font-weight: 500;
+            font-weight: normal;
             color: #5f6368;
         }
 
@@ -210,47 +131,43 @@
             position: sticky;
             left: 0;
             z-index: 11;
-            min-width: 50px;
-            background: linear-gradient(to right, #f8f9fa, #f0f1f3);
+            min-width: 40px;
+            background: #f8f9fa;
         }
 
         .excel-grid td {
             border: 1px solid #e0e0e0;
-            padding: 0;
-            min-width: 100px;
-            height: 32px;
+            padding: 2px 5px;
+            min-width: 80px;
+            height: 25px;
             position: relative;
-            background: white;
-            transition: background-color 0.2s;
+            background: #fff;
         }
 
         .excel-grid td.row-header {
-            background: linear-gradient(to right, #f8f9fa, #f0f1f3);
+            background: #f8f9fa;
             text-align: center;
-            font-weight: 500;
+            font-weight: normal;
             color: #5f6368;
             position: sticky;
             left: 0;
             z-index: 9;
-            padding: 8px;
         }
 
-        /* Cell Styles */
+        /* Cell Types */
         .cell {
             width: 100%;
             height: 100%;
             border: none;
-            padding: 6px 8px;
+            padding: 2px;
             font-size: 13px;
             outline: none;
             background: transparent;
-            font-family: inherit;
         }
 
         .cell:focus {
             outline: 2px solid #1a73e8;
             outline-offset: -2px;
-            background: #f8f9fa;
         }
 
         .cell.formula {
@@ -259,55 +176,32 @@
         }
 
         .cell.dropdown {
-            background: linear-gradient(to bottom, #fffef7, #fffdf0);
+            background: #fffef7;
             cursor: pointer;
-            padding-right: 28px;
-            font-weight: 500;
+            padding-right: 20px;
         }
 
         .dropdown-arrow {
             position: absolute;
-            right: 8px;
+            right: 5px;
             top: 50%;
             transform: translateY(-50%);
             pointer-events: none;
             color: #5f6368;
-            font-size: 12px;
-            background: white;
-            padding: 2px 4px;
-            border-radius: 3px;
-            border: 1px solid #dadce0;
         }
 
-        /* Cell States */
+        /* Cell Highlighting */
         .cell-highlight {
-            background: linear-gradient(to bottom, #e8f0fe, #dce7fc) !important;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+            background: #e8f0fe !important;
         }
 
         .cell-dependent {
-            background: linear-gradient(to bottom, #f0f8ff, #e6f3ff) !important;
+            background: #f0f8ff !important;
         }
 
         .cell-error {
-            background: linear-gradient(to bottom, #fee, #fdd) !important;
+            background: #fee;
             color: #d00;
-            font-weight: 600;
-        }
-
-        .cell-updating {
-            background: linear-gradient(to bottom, #fff3cd, #ffeaa7) !important;
-            animation: updating 0.5s infinite;
-        }
-
-        @keyframes updating {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
         }
 
         /* Dropdown Menu */
@@ -315,74 +209,32 @@
             position: absolute;
             background: white;
             border: 1px solid #dadce0;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             z-index: 1000;
-            max-height: 300px;
+            max-height: 200px;
             overflow-y: auto;
-            min-width: 200px;
-            animation: slideDown 0.2s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .dropdown-search {
-            padding: 8px;
-            border-bottom: 1px solid #e0e0e0;
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 1;
-        }
-
-        .dropdown-search input {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #dadce0;
-            border-radius: 4px;
-            font-size: 13px;
+            min-width: 150px;
         }
 
         .dropdown-item {
-            padding: 10px 14px;
+            padding: 8px 12px;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transition: background 0.2s;
         }
 
         .dropdown-item:hover {
-            background: linear-gradient(to right, #f8f9fa, #f0f1f3);
-            padding-left: 18px;
+            background: #f8f9fa;
         }
 
         .dropdown-item.selected {
-            background: linear-gradient(to right, #e8f0fe, #dce7fc);
-            font-weight: 600;
-            color: #1a73e8;
-        }
-
-        .dropdown-item.selected::before {
-            content: '✓';
-            color: #1a73e8;
+            background: #e8f0fe;
             font-weight: bold;
         }
 
         /* Status Bar */
         .status-bar {
-            background: linear-gradient(to bottom, #f8f9fa, #f0f1f3);
-            padding: 8px 24px;
+            background: #f8f9fa;
+            padding: 5px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -393,69 +245,43 @@
 
         .status-left {
             display: flex;
-            gap: 24px;
+            gap: 20px;
         }
 
         .status-item {
             display: flex;
-            gap: 6px;
-            align-items: center;
+            gap: 5px;
         }
 
         .status-item strong {
             color: #202124;
-            font-size: 13px;
         }
 
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #34a853;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* Loading */
+        /* Loading Overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.9);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            backdrop-filter: blur(5px);
         }
 
         .loading-overlay.active {
             display: flex;
         }
 
-        .spinner-container {
-            text-align: center;
-        }
-
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #217346;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #217346;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        .loading-text {
-            color: #5f6368;
-            font-size: 14px;
         }
 
         @keyframes spin {
@@ -463,190 +289,113 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Notifications */
-        .notification {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            animation: slideUp 0.3s ease-out;
+        /* Tooltips */
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
             z-index: 1000;
-        }
-
-        .notification.show {
-            display: flex;
-        }
-
-        .notification.success {
-            border-left: 4px solid #34a853;
-        }
-
-        .notification.error {
-            border-left: 4px solid #ea4335;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <div class="header">
-            <h1>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                </svg>
-                Excel Web Application
-            </h1>
-            <div class="header-actions">
-                <select id="workbookSelect" onchange="loadWorkbook(this.value)">
-                    <option value="">Select Workbook...</option>
-                </select>
-                <button onclick="recalculateAll()">
-                    <span style="margin-right: 4px;">♻️</span> Recalculate All
-                </button>
-                <button onclick="saveChanges()">
-                    <span style="margin-right: 4px;">💾</span> Save
-                </button>
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+            </svg>
+            Excel Web Application
+        </h1>
+        <div class="header-actions">
+            <select id="workbookSelect" onchange="loadWorkbook(this.value)">
+                <option value="">Select Workbook...</option>
+            </select>
+            <button onclick="recalculateAll()">♻️ Recalculate All</button>
+        </div>
+    </div>
+
+    <!-- Sheet Tabs -->
+    <div class="sheet-tabs" id="sheetTabs">
+        <!-- Dynamically populated -->
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="formula-bar">
+            <div class="cell-reference" id="cellReference">A1</div>
+            <span>ƒx</span>
+            <input type="text" class="formula-input" id="formulaInput" placeholder="Enter formula or value...">
+            <button onclick="applyFormula()">✓</button>
+        </div>
+    </div>
+
+    <!-- Excel Grid Container -->
+    <div class="excel-container">
+        <table class="excel-grid" id="excelGrid">
+            <!-- Dynamically populated -->
+        </table>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left">
+            <div class="status-item">
+                <span>Cells:</span>
+                <strong id="cellCount">0</strong>
+            </div>
+            <div class="status-item">
+                <span>Formulas:</span>
+                <strong id="formulaCount">0</strong>
+            </div>
+            <div class="status-item">
+                <span>Status:</span>
+                <strong id="status">Ready</strong>
             </div>
         </div>
-
-        <!-- Sheet Tabs -->
-        <div class="sheet-tabs" id="sheetTabs"></div>
-
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="formula-bar">
-                <div class="cell-reference" id="cellReference">A1</div>
-                <span style="color: #5f6368; font-size: 16px;">ƒx</span>
-                <input type="text" class="formula-input" id="formulaInput" 
-                       placeholder="Enter formula or value..." 
-                       onkeypress="if(event.key==='Enter') applyFormula()">
-                <button class="apply-btn" onclick="applyFormula()">Apply</button>
-            </div>
-        </div>
-
-        <!-- Excel Grid -->
-        <div class="excel-container">
-            <table class="excel-grid" id="excelGrid"></table>
-        </div>
-
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-left">
-                <div class="status-item">
-                    <div class="status-indicator"></div>
-                    <span>Status:</span>
-                    <strong id="status">Ready</strong>
-                </div>
-                <div class="status-item">
-                    <span>Cells:</span>
-                    <strong id="cellCount">0</strong>
-                </div>
-                <div class="status-item">
-                    <span>Formulas:</span>
-                    <strong id="formulaCount">0</strong>
-                </div>
-            </div>
-            <div class="status-right">
-                <span id="lastUpdate">Last updated: Never</span>
-            </div>
+        <div class="status-right">
+            <span id="lastUpdate">Last updated: Never</span>
         </div>
     </div>
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner-container">
-            <div class="spinner"></div>
-            <div class="loading-text" id="loadingText">Loading...</div>
-        </div>
+        <div class="spinner"></div>
     </div>
 
-    <!-- Dropdown Menu -->
+    <!-- Dropdown Menu (Hidden by default) -->
     <div class="dropdown-menu" id="dropdownMenu" style="display: none;">
-        <div class="dropdown-search">
-            <input type="text" placeholder="Search..." id="dropdownSearch" onkeyup="filterDropdown()">
-        </div>
-        <div id="dropdownItems"></div>
-    </div>
-
-    <!-- Notification -->
-    <div class="notification" id="notification">
-        <span id="notificationText"></span>
+        <!-- Dynamically populated -->
     </div>
 
     <script>
-        // ============================================
-        // Global State Management
-        // ============================================
-        const AppState = {
-            currentWorkbook: null,
-            currentSheet: null,
-            sheets: [],
-            cells: {},
-            formulas: {},
-            dependencies: {},
-            validations: [],
-            selectedCell: null,
-            isDirty: false,
-            updateQueue: new Set(),
-            validationCache: {},
-            isUpdating: false
-        };
+        // Global Variables
+        let currentWorkbook = null;
+        let currentSheet = null;
+        let sheets = {};
+        let cells = {};
+        let formulas = {};
+        let dependencies = {};
+        let validations = {};
+        let selectedCell = null;
 
-        // ============================================
-        // Initialization
-        // ============================================
+        // Initialize Application
         window.onload = function() {
             loadWorkbooks();
-            setupEventListeners();
         };
 
-        function setupEventListeners() {
-            // Global click handler for closing dropdowns
-            document.addEventListener('click', (e) => {
-                const dropdown = document.getElementById('dropdownMenu');
-                if (!dropdown.contains(e.target) && 
-                    !e.target.classList.contains('dropdown')) {
-                    dropdown.style.display = 'none';
-                }
-            });
-
-            // Save on Ctrl+S
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 's') {
-                    e.preventDefault();
-                    saveChanges();
-                }
-            });
-        }
-
-        // ============================================
-        // Data Loading Functions
-        // ============================================
+        // Load available workbooks
         async function loadWorkbooks() {
             try {
                 const response = await fetch('api/get_workbooks.php');
                 const workbooks = await response.json();
                 
                 const select = document.getElementById('workbookSelect');
-                select.innerHTML = '<option value="">Select Workbook...</option>';
-                
                 workbooks.forEach(wb => {
                     const option = document.createElement('option');
                     option.value = wb.id;
@@ -654,161 +403,132 @@
                     select.appendChild(option);
                 });
                 
+                // Auto-load first workbook
                 if (workbooks.length > 0) {
                     loadWorkbook(workbooks[0].id);
                 }
             } catch (error) {
-                showNotification('Error loading workbooks', 'error');
                 console.error('Error loading workbooks:', error);
             }
         }
 
+        // Load specific workbook
         async function loadWorkbook(workbookId) {
             if (!workbookId) return;
             
-            showLoading(true, 'Loading workbook...');
-            AppState.currentWorkbook = workbookId;
+            showLoading(true);
+            currentWorkbook = workbookId;
             
             try {
-                const response = await fetch(`api/get_sheets.php?workbook_id=${workbookId}`);
-                AppState.sheets = await response.json();
+                // Load sheets
+                const sheetsResponse = await fetch(`api/get_sheets.php?workbook_id=${workbookId}`);
+                sheets = await sheetsResponse.json();
                 
+                // Render sheet tabs
                 renderSheetTabs();
                 
-                if (AppState.sheets.length > 0) {
-                    await loadSheet(AppState.sheets[0].id);
+                // Load first sheet
+                if (sheets.length > 0) {
+                    loadSheet(sheets[0].id);
                 }
             } catch (error) {
-                showNotification('Error loading workbook', 'error');
                 console.error('Error loading workbook:', error);
             } finally {
                 showLoading(false);
             }
         }
 
+        // Render sheet tabs
+        function renderSheetTabs() {
+            const container = document.getElementById('sheetTabs');
+            container.innerHTML = '';
+            
+            sheets.forEach(sheet => {
+                const tab = document.createElement('div');
+                tab.className = 'sheet-tab';
+                tab.textContent = sheet.sheet_name;
+                tab.onclick = () => loadSheet(sheet.id);
+                tab.id = `sheet-tab-${sheet.id}`;
+                container.appendChild(tab);
+            });
+        }
+
+        // Load specific sheet
         async function loadSheet(sheetId) {
-            showLoading(true, 'Loading sheet data...');
-            AppState.currentSheet = sheetId;
+            showLoading(true);
+            currentSheet = sheetId;
             
             // Update active tab
             document.querySelectorAll('.sheet-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            const activeTab = document.getElementById(`sheet-tab-${sheetId}`);
-            if (activeTab) activeTab.classList.add('active');
+            document.getElementById(`sheet-tab-${sheetId}`).classList.add('active');
             
             try {
-                // Load cells and validations in parallel
-                const [cellsResponse, validationsResponse] = await Promise.all([
-                    fetch(`api/get_cells.php?sheet_id=${sheetId}`),
-                    fetch(`api/get_validations.php?sheet_id=${sheetId}`)
-                ]);
-                
+                // Load cells
+                const cellsResponse = await fetch(`api/get_cells.php?sheet_id=${sheetId}`);
                 const cellData = await cellsResponse.json();
-                AppState.validations = await validationsResponse.json();
                 
+                // Load validations
+                const validationsResponse = await fetch(`api/get_validations.php?sheet_id=${sheetId}`);
+                validations = await validationsResponse.json();
+                
+                // Process cells
                 processCellData(cellData);
-                processValidations();
+                
+                // Render grid
                 renderGrid();
+                
+                // Update status
                 updateStatus();
                 
             } catch (error) {
-                showNotification('Error loading sheet', 'error');
                 console.error('Error loading sheet:', error);
             } finally {
                 showLoading(false);
             }
         }
 
-        // ============================================
-        // Data Processing
-        // ============================================
+        // Process cell data
         function processCellData(cellData) {
-            AppState.cells = {};
-            AppState.formulas = {};
-            AppState.dependencies = {};
+            cells = {};
+            formulas = {};
+            dependencies = {};
             
             cellData.forEach(cell => {
                 const key = cell.cell_address;
-                AppState.cells[key] = cell;
+                cells[key] = cell;
                 
                 if (cell.formula) {
-                    AppState.formulas[key] = cell.formula;
+                    formulas[key] = cell.formula;
                     
+                    // Parse dependencies
                     if (cell.dependencies) {
-                        try {
-                            const deps = JSON.parse(cell.dependencies);
-                            AppState.dependencies[key] = deps;
-                            
-                            // Build reverse dependencies
-                            deps.forEach(dep => {
-                                if (!AppState.dependencies[dep]) {
-                                    AppState.dependencies[dep] = [];
-                                }
-                                if (!AppState.dependencies[dep].includes(key)) {
-                                    AppState.dependencies[dep].push(key);
-                                }
-                            });
-                        } catch (e) {
-                            console.error('Error parsing dependencies:', e);
-                        }
+                        const deps = JSON.parse(cell.dependencies);
+                        dependencies[key] = deps;
+                        
+                        // Create reverse dependencies
+                        deps.forEach(dep => {
+                            if (!dependencies[dep]) {
+                                dependencies[dep] = [];
+                            }
+                            dependencies[dep].push(key);
+                        });
                     }
                 }
             });
         }
 
-        function processValidations() {
-            AppState.validationCache = {};
-            
-            AppState.validations.forEach(validation => {
-                // Cache validation data for quick lookup
-                const cells = parseCellRange(validation.cell_range);
-                cells.forEach(cell => {
-                    AppState.validationCache[cell] = validation;
-                });
-            });
-        }
-
-        function parseCellRange(range) {
-            // Simple parser for single cells or ranges like D4:D10
-            const cells = [];
-            
-            if (range.includes(':')) {
-                const [start, end] = range.split(':');
-                const startMatch = start.match(/([A-Z]+)(\d+)/);
-                const endMatch = end.match(/([A-Z]+)(\d+)/);
-                
-                if (startMatch && endMatch) {
-                    const startCol = columnToNumber(startMatch[1]);
-                    const endCol = columnToNumber(endMatch[1]);
-                    const startRow = parseInt(startMatch[2]);
-                    const endRow = parseInt(endMatch[2]);
-                    
-                    for (let row = startRow; row <= endRow; row++) {
-                        for (let col = startCol; col <= endCol; col++) {
-                            cells.push(numberToColumn(col) + row);
-                        }
-                    }
-                }
-            } else {
-                cells.push(range);
-            }
-            
-            return cells;
-        }
-
-        // ============================================
-        // Grid Rendering
-        // ============================================
+        // Render Excel grid
         function renderGrid() {
             const grid = document.getElementById('excelGrid');
             grid.innerHTML = '';
             
-            // Calculate dimensions
-            let maxRow = 50;
-            let maxCol = 26;
+            // Find grid dimensions
+            let maxRow = 50; // Default rows
+            let maxCol = 26; // Default to Z column
             
-            Object.keys(AppState.cells).forEach(addr => {
+            Object.keys(cells).forEach(addr => {
                 const match = addr.match(/([A-Z]+)(\d+)/);
                 if (match) {
                     const col = match[1];
@@ -843,8 +563,33 @@
                 
                 // Data cells
                 for (let col = 1; col <= maxCol; col++) {
+                    const td = document.createElement('td');
                     const cellAddr = numberToColumn(col) + row;
-                    const td = createTableCell(cellAddr);
+                    const cellData = cells[cellAddr];
+                    
+                    if (cellData) {
+                        const input = createCellInput(cellAddr, cellData);
+                        td.appendChild(input);
+                        
+                        // Add dropdown arrow if validation exists
+                        if (hasValidation(cellAddr)) {
+                            const arrow = document.createElement('span');
+                            arrow.className = 'dropdown-arrow';
+                            arrow.textContent = '▼';
+                            td.appendChild(arrow);
+                            td.style.position = 'relative';
+                        }
+                        
+                        // Highlight formula cells
+                        if (cellData.formula) {
+                            td.classList.add('cell-dependent');
+                        }
+                    } else {
+                        const input = createCellInput(cellAddr, null);
+                        td.appendChild(input);
+                    }
+                    
+                    td.id = `cell-${cellAddr}`;
                     tr.appendChild(td);
                 }
                 
@@ -852,11 +597,8 @@
             }
         }
 
-        function createTableCell(cellAddr) {
-            const td = document.createElement('td');
-            const cellData = AppState.cells[cellAddr];
-            const validation = AppState.validationCache[cellAddr];
-            
+        // Create cell input element
+        function createCellInput(cellAddr, cellData) {
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'cell';
@@ -868,7 +610,6 @@
                 if (cellData.formula) {
                     input.classList.add('formula');
                     input.title = cellData.formula;
-                    td.classList.add('cell-dependent');
                 }
                 
                 if (cellData.error_message) {
@@ -882,303 +623,158 @@
             input.onchange = () => updateCell(cellAddr, input.value);
             input.onkeydown = (e) => handleCellKeydown(e, cellAddr);
             
-            // Add dropdown functionality if validation exists
-            if (validation) {
+            // Dropdown handling
+            if (hasValidation(cellAddr)) {
                 input.classList.add('dropdown');
-                input.onclick = (e) => {
-                    e.stopPropagation();
-                    showDropdown(cellAddr, input);
-                };
+                input.onclick = () => showDropdown(cellAddr, input);
                 input.readOnly = true;
-                
-                const arrow = document.createElement('span');
-                arrow.className = 'dropdown-arrow';
-                arrow.textContent = '▼';
-                td.appendChild(arrow);
             }
             
-            td.appendChild(input);
-            td.id = `cell-${cellAddr}`;
-            
-            return td;
+            return input;
         }
 
-        // ============================================
-        // Dropdown Management - FIXED
-        // ============================================
-        async function showDropdown(cellAddr, input) {
-            const validation = AppState.validationCache[cellAddr];
-            if (!validation) return;
+        // Check if cell has validation
+        function hasValidation(cellAddr) {
+            return validations.some(v => {
+                const range = v.cell_range;
+                // Simple check - can be enhanced for ranges
+                return range.includes(cellAddr);
+            });
+        }
+
+        // Show dropdown menu
+        function showDropdown(cellAddr, input) {
+            const validation = validations.find(v => {
+                if (!v.cell_range) return false;
+                // Check if cell address matches the validation range
+                return v.cell_range.includes(cellAddr);
+            });
+            
+            if (!validation) {
+                console.log('No validation found for', cellAddr);
+                return;
+            }
             
             const menu = document.getElementById('dropdownMenu');
-            const itemsContainer = document.getElementById('dropdownItems');
-            itemsContainer.innerHTML = '';
+            menu.innerHTML = '';
             
-            // Get dropdown items
-            let items = await getValidationItems(validation);
+            // Parse validation list
+            let items = [];
             
+            // Try to get items from validation_list first
+            if (validation.validation_list) {
+                try {
+                    // Parse JSON array
+                    const parsed = JSON.parse(validation.validation_list);
+                    if (Array.isArray(parsed)) {
+                        items = parsed;
+                    } else if (parsed) {
+                        items = [parsed];
+                    }
+                } catch (e) {
+                    // If not JSON, try comma-separated
+                    items = validation.validation_list.split(',').map(item => item.trim());
+                }
+            } 
+            
+            // If no items yet, try validation_formula
+            if (items.length === 0 && validation.validation_formula) {
+                // This is a range reference like 'List Aircraft'!$R$3:$R$42
+                items = getValidationItemsFromRange(validation.validation_formula);
+            }
+            
+            // If still no items, provide defaults
             if (items.length === 0) {
+                console.log('No items found for validation:', validation);
                 items = ['No options available'];
             }
             
-            // Store items for filtering
-            menu.dataset.items = JSON.stringify(items);
-            menu.dataset.cellAddr = cellAddr;
-            
             // Create dropdown items
             items.forEach(item => {
+                if (!item || item === null) return;
+                
                 const div = document.createElement('div');
                 div.className = 'dropdown-item';
                 div.textContent = String(item);
-                
                 if (input.value === String(item)) {
                     div.classList.add('selected');
                 }
-                
-                div.onclick = async () => {
-                    // Update the input immediately for visual feedback
+                div.onclick = () => {
                     input.value = String(item);
-                    input.classList.add('cell-updating');
-                    
-                    // Close dropdown
+                    updateCell(cellAddr, String(item));
                     menu.style.display = 'none';
-                    
-                    // Update cell and trigger recalculation
-                    await updateCell(cellAddr, String(item));
-                    
-                    // Remove updating class
-                    input.classList.remove('cell-updating');
                 };
-                
-                itemsContainer.appendChild(div);
+                menu.appendChild(div);
             });
             
-            // Position and show dropdown
+            // Position dropdown
             const rect = input.getBoundingClientRect();
             menu.style.left = rect.left + 'px';
             menu.style.top = rect.bottom + 'px';
             menu.style.display = 'block';
             
-            // Focus search input
-            document.getElementById('dropdownSearch').value = '';
-            document.getElementById('dropdownSearch').focus();
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', closeDropdown);
+            }, 100);
         }
 
-        async function getValidationItems(validation) {
-            let items = [];
+        // Get validation items from range formula
+        function getValidationItemsFromRange(formula) {
+            // For now, we need to fetch the actual values from the database
+            // This would require an API call to get the range values
             
-            // Try to parse validation_list first
-            if (validation.validation_list) {
-                try {
-                    const parsed = JSON.parse(validation.validation_list);
-                    if (Array.isArray(parsed)) {
-                        items = parsed;
-                    }
-                } catch (e) {
-                    // Try comma-separated
-                    items = validation.validation_list.split(',').map(item => item.trim());
-                }
+            // Parse the formula to get sheet and range
+            const match = formula.match(/(?:'([^']+)'!)?([A-Z$]+\d+:[A-Z$]+\d+)/);
+            if (!match) {
+                return [];
             }
             
-            // If no items yet, try validation_formula (range reference)
-            if (items.length === 0 && validation.validation_formula) {
-                const match = validation.validation_formula.match(/(?:'([^']+)'!)?([A-Z$]+\d+:[A-Z$]+\d+)/);
-                if (match) {
-                    const sheetName = match[1];
-                    const range = match[2];
-                    
-                    try {
-                        const response = await fetch(
-                            `api/get_range_values.php?sheet=${encodeURIComponent(sheetName)}&range=${encodeURIComponent(range)}`
-                        );
-                        const data = await response.json();
-                        if (data.values) {
-                            items = data.values;
-                        }
-                    } catch (e) {
-                        console.error('Error fetching range values:', e);
-                    }
+            const sheetName = match[1];
+            const range = match[2];
+            
+            // For now, return empty array - you'd need to make an API call here
+            console.log('Need to fetch range:', sheetName, range);
+            
+            // Make synchronous request (not ideal but simple for now)
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `api/get_range_values.php?sheet=${sheetName}&range=${range}`, false);
+                xhr.send();
+                
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    return response.values || [];
                 }
+            } catch (e) {
+                console.error('Error fetching range values:', e);
             }
             
-            return items;
+            return [];
         }
 
-        function filterDropdown() {
-            const search = document.getElementById('dropdownSearch').value.toLowerCase();
+        // Close dropdown
+        function closeDropdown(e) {
             const menu = document.getElementById('dropdownMenu');
-            const items = JSON.parse(menu.dataset.items || '[]');
-            const itemsContainer = document.getElementById('dropdownItems');
-            const cellAddr = menu.dataset.cellAddr;
-            const input = document.getElementById(`input-${cellAddr}`);
-            
-            itemsContainer.innerHTML = '';
-            
-            const filtered = items.filter(item => 
-                String(item).toLowerCase().includes(search)
-            );
-            
-            filtered.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'dropdown-item';
-                div.textContent = String(item);
-                
-                if (input.value === String(item)) {
-                    div.classList.add('selected');
-                }
-                
-                div.onclick = async () => {
-                    input.value = String(item);
-                    input.classList.add('cell-updating');
-                    menu.style.display = 'none';
-                    await updateCell(cellAddr, String(item));
-                    input.classList.remove('cell-updating');
-                };
-                
-                itemsContainer.appendChild(div);
-            });
-        }
-
-        // ============================================
-        // Cell Updates and Recalculation - FIXED
-        // ============================================
-        async function updateCell(cellAddr, value) {
-            if (AppState.isUpdating) return;
-            AppState.isUpdating = true;
-            
-            showLoading(true, 'Updating...');
-            updateStatus('Updating cell...');
-            
-            try {
-                const isFormula = value.startsWith('=');
-                
-                // Send update to server
-                const response = await fetch('api/update_cell.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        sheet_id: AppState.currentSheet,
-                        cell_address: cellAddr,
-                        value: value,
-                        is_formula: isFormula
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Update local state
-                    AppState.cells[cellAddr] = result.cell;
-                    AppState.isDirty = true;
-                    
-                    // Update display immediately
-                    updateCellDisplay(cellAddr, result.cell);
-                    
-                    // Recalculate dependent cells
-                    if (result.affected_cells && result.affected_cells.length > 0) {
-                        await recalculateCells(result.affected_cells);
-                    }
-                    
-                    // Update timestamp
-                    updateTimestamp();
-                    
-                    // Show success feedback
-                    showNotification('Cell updated successfully', 'success');
-                    
-                    // Highlight dependent cells briefly
-                    highlightDependents(cellAddr);
-                } else {
-                    throw new Error(result.error || 'Update failed');
-                }
-                
-            } catch (error) {
-                console.error('Error updating cell:', error);
-                showNotification('Error updating cell: ' + error.message, 'error');
-            } finally {
-                AppState.isUpdating = false;
-                showLoading(false);
-                updateStatus('Ready');
+            if (!menu.contains(e.target)) {
+                menu.style.display = 'none';
+                document.removeEventListener('click', closeDropdown);
             }
         }
 
-        async function recalculateCells(cellAddresses) {
-            if (!cellAddresses || cellAddresses.length === 0) return;
-            
-            updateStatus('Recalculating formulas...');
-            
-            try {
-                const response = await fetch('api/recalculate.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        sheet_id: AppState.currentSheet,
-                        cells: cellAddresses
-                    })
-                });
-                
-                const results = await response.json();
-                
-                if (Array.isArray(results)) {
-                    // Update all recalculated cells
-                    results.forEach(result => {
-                        AppState.cells[result.cell_address] = result;
-                        updateCellDisplay(result.cell_address, result);
-                    });
-                    
-                    // Check for cascading updates
-                    const nextLevel = [];
-                    results.forEach(result => {
-                        if (AppState.dependencies[result.cell_address]) {
-                            nextLevel.push(...AppState.dependencies[result.cell_address]);
-                        }
-                    });
-                    
-                    // Recursively recalculate next level if needed
-                    if (nextLevel.length > 0) {
-                        const unique = [...new Set(nextLevel)];
-                        await recalculateCells(unique);
-                    }
-                }
-            } catch (error) {
-                console.error('Error recalculating:', error);
-            }
+        // Get validation items from formula
+        function getValidationItems(formula) {
+            // This would fetch from the referenced range
+            // For now, return sample data
+            return ['Option 1', 'Option 2', 'Option 3'];
         }
 
-        function updateCellDisplay(cellAddr, cellData) {
-            const input = document.getElementById(`input-${cellAddr}`);
-            const cell = document.getElementById(`cell-${cellAddr}`);
-            
-            if (input) {
-                // Update value
-                input.value = cellData.formatted_value || cellData.value || '';
-                
-                // Update classes
-                input.classList.toggle('formula', !!cellData.formula);
-                input.classList.toggle('cell-error', !!cellData.error_message);
-                
-                if (cellData.formula) {
-                    input.title = cellData.formula;
-                    if (cell) cell.classList.add('cell-dependent');
-                } else {
-                    if (cell) cell.classList.remove('cell-dependent');
-                }
-                
-                // Flash animation for updated cells
-                input.classList.add('cell-updating');
-                setTimeout(() => {
-                    input.classList.remove('cell-updating');
-                }, 500);
-            }
-        }
-
-        // ============================================
-        // Cell Selection and Navigation
-        // ============================================
+        // Select cell
         function selectCell(cellAddr) {
-            AppState.selectedCell = cellAddr;
+            selectedCell = cellAddr;
             document.getElementById('cellReference').textContent = cellAddr;
             
-            const cellData = AppState.cells[cellAddr];
+            const cellData = cells[cellAddr];
             const formulaInput = document.getElementById('formulaInput');
             
             if (cellData && cellData.formula) {
@@ -1189,50 +785,125 @@
                 formulaInput.value = '';
             }
             
+            // Highlight dependencies
             highlightDependencies(cellAddr);
         }
 
+        // Update cell value
+        async function updateCell(cellAddr, value) {
+            showLoading(true);
+            updateStatus('Updating...');
+            
+            try {
+                // Determine if it's a formula
+                const isFormula = value.startsWith('=');
+                
+                // Send update to server
+                const response = await fetch('api/update_cell.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet_id: currentSheet,
+                        cell_address: cellAddr,
+                        value: value,
+                        is_formula: isFormula
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update local cell data
+                    cells[cellAddr] = result.cell;
+                    
+                    // Recalculate dependent cells
+                    if (result.affected_cells) {
+                        await recalculateCells(result.affected_cells);
+                    }
+                    
+                    // Update display
+                    updateCellDisplay(cellAddr, result.cell);
+                    
+                    // Update last modified time
+                    document.getElementById('lastUpdate').textContent = 
+                        'Last updated: ' + new Date().toLocaleTimeString();
+                }
+                
+            } catch (error) {
+                console.error('Error updating cell:', error);
+                alert('Error updating cell: ' + error.message);
+            } finally {
+                showLoading(false);
+                updateStatus('Ready');
+            }
+        }
+
+        // Recalculate cells
+        async function recalculateCells(cellAddresses) {
+            updateStatus('Recalculating...');
+            
+            try {
+                const response = await fetch('api/recalculate.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet_id: currentSheet,
+                        cells: cellAddresses
+                    })
+                });
+                
+                const results = await response.json();
+                
+                // Update all recalculated cells
+                results.forEach(result => {
+                    cells[result.cell_address] = result;
+                    updateCellDisplay(result.cell_address, result);
+                });
+                
+            } catch (error) {
+                console.error('Error recalculating:', error);
+            }
+        }
+
+        // Update cell display
+        function updateCellDisplay(cellAddr, cellData) {
+            const input = document.getElementById(`input-${cellAddr}`);
+            if (input) {
+                input.value = cellData.formatted_value || cellData.value || '';
+                
+                // Update classes
+                input.classList.toggle('formula', !!cellData.formula);
+                input.classList.toggle('cell-error', !!cellData.error_message);
+                
+                if (cellData.formula) {
+                    input.title = cellData.formula;
+                }
+            }
+        }
+
+        // Highlight dependencies
         function highlightDependencies(cellAddr) {
             // Clear previous highlights
             document.querySelectorAll('.cell-highlight').forEach(el => {
                 el.classList.remove('cell-highlight');
             });
             
-            // Highlight cells this cell depends on
-            if (AppState.formulas[cellAddr]) {
-                const formula = AppState.formulas[cellAddr];
-                const refs = extractCellReferences(formula);
-                refs.forEach(ref => {
-                    const td = document.getElementById(`cell-${ref}`);
-                    if (td) td.classList.add('cell-highlight');
-                });
-            }
-        }
-
-        function highlightDependents(cellAddr) {
-            if (AppState.dependencies[cellAddr]) {
-                AppState.dependencies[cellAddr].forEach(dep => {
+            // Highlight dependencies
+            if (dependencies[cellAddr]) {
+                dependencies[cellAddr].forEach(dep => {
                     const td = document.getElementById(`cell-${dep}`);
                     if (td) {
                         td.classList.add('cell-highlight');
-                        setTimeout(() => {
-                            td.classList.remove('cell-highlight');
-                        }, 2000);
                     }
                 });
             }
         }
 
-        function extractCellReferences(formula) {
-            const refs = [];
-            const pattern = /\b([A-Z]+\d+)\b/g;
-            let match;
-            while ((match = pattern.exec(formula)) !== null) {
-                refs.push(match[1]);
-            }
-            return refs;
-        }
-
+        // Handle cell keyboard navigation
         function handleCellKeydown(e, cellAddr) {
             const match = cellAddr.match(/([A-Z]+)(\d+)/);
             if (!match) return;
@@ -1255,17 +926,7 @@
                     newAddr = numberToColumn(col + 1) + row;
                     break;
                 case 'Enter':
-                    if (!e.shiftKey) {
-                        newAddr = numberToColumn(col) + (row + 1);
-                    }
-                    break;
-                case 'Tab':
-                    e.preventDefault();
-                    if (!e.shiftKey) {
-                        newAddr = numberToColumn(col + 1) + row;
-                    } else if (col > 1) {
-                        newAddr = numberToColumn(col - 1) + row;
-                    }
+                    newAddr = numberToColumn(col) + (row + 1);
                     break;
             }
             
@@ -1274,93 +935,50 @@
                 const input = document.getElementById(`input-${newAddr}`);
                 if (input) {
                     input.focus();
-                    input.select();
                 }
             }
         }
 
-        // ============================================
-        // Sheet Management
-        // ============================================
-        function renderSheetTabs() {
-            const container = document.getElementById('sheetTabs');
-            container.innerHTML = '';
-            
-            AppState.sheets.forEach(sheet => {
-                const tab = document.createElement('div');
-                tab.className = 'sheet-tab';
-                tab.textContent = sheet.sheet_name;
-                tab.onclick = () => loadSheet(sheet.id);
-                tab.id = `sheet-tab-${sheet.id}`;
-                container.appendChild(tab);
-            });
-        }
-
-        // ============================================
-        // Recalculation Functions
-        // ============================================
+        // Recalculate all formulas
         async function recalculateAll() {
-            showLoading(true, 'Recalculating all formulas...');
+            showLoading(true);
             updateStatus('Recalculating all formulas...');
             
             try {
-                const formulaCells = Object.keys(AppState.formulas);
+                const response = await fetch('api/recalculate_all.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet_id: currentSheet
+                    })
+                });
                 
-                if (formulaCells.length === 0) {
-                    showNotification('No formulas to recalculate', 'success');
-                    return;
-                }
+                const results = await response.json();
                 
-                await recalculateCells(formulaCells);
+                // Reload sheet to get fresh data
+                await loadSheet(currentSheet);
                 
                 updateStatus('Recalculation complete');
-                showNotification('All formulas recalculated', 'success');
-                updateTimestamp();
                 
             } catch (error) {
                 console.error('Error recalculating all:', error);
-                showNotification('Error during recalculation', 'error');
+                updateStatus('Error during recalculation');
             } finally {
                 showLoading(false);
-                updateStatus('Ready');
             }
         }
 
+        // Apply formula from formula bar
         function applyFormula() {
-            if (!AppState.selectedCell) {
-                showNotification('Please select a cell first', 'error');
-                return;
-            }
+            if (!selectedCell) return;
             
             const formulaInput = document.getElementById('formulaInput');
-            updateCell(AppState.selectedCell, formulaInput.value);
+            updateCell(selectedCell, formulaInput.value);
         }
 
-        // ============================================
-        // Save Functions
-        // ============================================
-        async function saveChanges() {
-            if (!AppState.isDirty) {
-                showNotification('No changes to save', 'success');
-                return;
-            }
-            
-            showLoading(true, 'Saving changes...');
-            
-            // In a real implementation, you would batch save all changes
-            // For now, we'll just mark as saved
-            
-            setTimeout(() => {
-                AppState.isDirty = false;
-                showLoading(false);
-                showNotification('Changes saved successfully', 'success');
-                updateTimestamp();
-            }, 1000);
-        }
-
-        // ============================================
         // Utility Functions
-        // ============================================
         function columnToNumber(col) {
             let num = 0;
             for (let i = 0; i < col.length; i++) {
@@ -1379,41 +997,20 @@
             return col;
         }
 
-        function showLoading(show, text = 'Loading...') {
-            const overlay = document.getElementById('loadingOverlay');
-            const loadingText = document.getElementById('loadingText');
-            
-            loadingText.textContent = text;
-            overlay.classList.toggle('active', show);
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
         }
 
         function updateStatus(message = 'Ready') {
             document.getElementById('status').textContent = message;
             
-            if (message === 'Ready') {
-                const cellCount = Object.keys(AppState.cells).length;
-                const formulaCount = Object.keys(AppState.formulas).length;
+            if (!message || message === 'Ready') {
+                const cellCount = Object.keys(cells).length;
+                const formulaCount = Object.keys(formulas).length;
                 
                 document.getElementById('cellCount').textContent = cellCount;
                 document.getElementById('formulaCount').textContent = formulaCount;
             }
-        }
-
-        function updateTimestamp() {
-            document.getElementById('lastUpdate').textContent = 
-                'Last updated: ' + new Date().toLocaleTimeString();
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            const text = document.getElementById('notificationText');
-            
-            text.textContent = message;
-            notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
         }
     </script>
 </body>

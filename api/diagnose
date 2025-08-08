@@ -1,0 +1,452 @@
+<?php
+/**
+ * Excel Database Diagnostic Script
+ * This will help identify why VLOOKUP updates aren't working
+ * Save as: api/diagnose.php
+ */
+
+header('Content-Type: text/html; charset=utf-8');
+
+// Database connection
+require_once __DIR__ . '/../config/database.php';
+$config = require __DIR__ . '/../config/database.php';
+
+try {
+    $pdo = new PDO(
+        "mysql:host={$config['host']};dbname={$config['database']};charset={$config['charset']}",
+        $config['username'],
+        $config['password']
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    $sheetId = $_GET['sheet_id'] ?? 1;
+    
+} catch (Exception $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Excel Database Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #217346;
+            border-bottom: 2px solid #217346;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 30px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-left: 4px solid #217346;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th {
+            background: #217346;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #e8f4ff;
+            padding: 2px 4px;
+            word-break: break-all;
+        }
+        .error {
+            background: #ffeeee;
+            color: #d00;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #eeffee;
+            color: #0a0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .highlight {
+            background: yellow;
+            font-weight: bold;
+        }
+        .cell-ref {
+            background: #e8f4ff;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Excel Database Diagnostic for Sheet #<?php echo $sheetId; ?></h1>
+        
+        <?php
+        // 1. Check if sheet exists
+        $stmt = $pdo->prepare("SELECT * FROM sheets WHERE id = ?");
+        $stmt->execute([$sheetId]);
+        $sheet = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$sheet) {
+            echo '<div class="error">Sheet not found! Please check the sheet_id parameter.</div>';
+            
+            echo '<h2>Available Sheets:</h2>';
+            $stmt = $pdo->query("SELECT id, sheet_name FROM sheets");
+            echo '<ul>';
+            while ($s = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                echo "<li><a href='?sheet_id={$s['id']}'>Sheet #{$s['id']}: {$s['sheet_name']}</a></li>";
+            }
+            echo '</ul>';
+            die();
+        }
+        
+        echo "<div class='success'>✓ Sheet found: <strong>{$sheet['sheet_name']}</strong></div>";
+        ?>
+        
+        <h2>📊 1. Dropdown Cells (Data Validations)</h2>
+        <?php
+        $stmt = $pdo->prepare("
+            SELECT * FROM data_validations 
+            WHERE sheet_id = ?
+            ORDER BY cell_range
+        ");
+        $stmt->execute([$sheetId]);
+        $validations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if ($validations) {
+            echo '<table>';
+            echo '<tr><th>Cell Range</th><th>Type</th><th>Source</th><th>Current Value</th></tr>';
+            
+            foreach ($validations as $val) {
+                // Get current value of the cell
+                $cellAddr = explode(':', $val['cell_range'])[0]; // Get first cell if it's a range
+                $stmt = $pdo->prepare("
+                    SELECT value FROM cells_independent 
+                    WHERE sheet_id = ? AND cell_address = ?
+                ");
+                $stmt->execute([$sheetId, $cellAddr]);
+                $currentValue = $stmt->fetchColumn() ?: '(empty)';
+                
+                $source = $val['validation_formula'] ?: $val['validation_list'];
+                
+                echo '<tr>';
+                echo '<td><span class="cell-ref">' . htmlspecialchars($val['cell_range']) . '</span></td>';
+                echo '<td>' . htmlspecialchars($val['validation_type']) . '</td>';
+                echo '<td class="formula">' . htmlspecialchars($source) . '</td>';
+                echo '<td><strong>' . htmlspecialchars($currentValue) . '</strong></td>';
+                echo '</tr>';
+            }
+            echo '</table>';
+            
+            // Test dropdown values
+            echo '<div class="warning">Testing dropdown value retrieval...</div>';
+            foreach ($validations as $val) {
+                if ($val['validation_formula']) {
+                    // Try to parse the formula
+                    if (preg_match("/(?:'([^']+)'!)?([A-Z$]+\d+:[A-Z$]+\d+)/", $val['validation_formula'], $matches)) {
+                        $sheetName = $matches[1];
+                        $range = $matches[2];
+                        echo "<p>Range <code>{$val['validation_formula']}</code> → Sheet: '$sheetName', Range: $range</p>";
+                        
+                        // Try to get values
+                        if ($sheetName) {
+                            $stmt = $pdo->prepare("SELECT id FROM sheets WHERE sheet_name = ?");
+                            $stmt->execute([$sheetName]);
+                            $sourceSheetId = $stmt->fetchColumn();
+                            
+                            if ($sourceSheetId) {
+                                echo "<p class='success'>✓ Source sheet found (ID: $sourceSheetId)</p>";
+                            } else {
+                                echo "<p class='error'>✗ Source sheet '$sheetName' not found!</p>";
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            echo '<div class="warning">No data validations found. Dropdown cells may not be properly imported.</div>';
+        }
+        ?>
+        
+        <h2>🔗 2. VLOOKUP Formulas</h2>
+        <?php
+        $stmt = $pdo->prepare("
+            SELECT cell_address, formula, calculated_value, dependencies, has_error, error_message
+            FROM cells_dependent 
+            WHERE sheet_id = ? 
+            AND formula_type = 'VLOOKUP'
+            LIMIT 20
+        ");
+        $stmt->execute([$sheetId]);
+        $vlookups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if ($vlookups) {
+            echo '<table>';
+            echo '<tr><th>Cell</th><th>Formula</th><th>Current Value</th><th>Dependencies</th><th>Status</th></tr>';
+            
+            foreach ($vlookups as $vl) {
+                // Highlight cells that are commonly used as lookup values
+                $formula = $vl['formula'];
+                $formula = str_replace('$D$4', '<span class="highlight">$D$4</span>', $formula);
+                $formula = str_replace('$D$5', '<span class="highlight">$D$5</span>', $formula);
+                $formula = str_replace('D4', '<span class="highlight">D4</span>', $formula);
+                $formula = str_replace('D5', '<span class="highlight">D5</span>', $formula);
+                
+                echo '<tr>';
+                echo '<td><span class="cell-ref">' . htmlspecialchars($vl['cell_address']) . '</span></td>';
+                echo '<td class="formula">' . $formula . '</td>';
+                echo '<td>' . htmlspecialchars($vl['calculated_value'] ?: '(empty)') . '</td>';
+                echo '<td>' . htmlspecialchars($vl['dependencies'] ?: '[]') . '</td>';
+                echo '<td>' . ($vl['has_error'] ? 
+                    '<span style="color:red">ERROR: ' . htmlspecialchars($vl['error_message']) . '</span>' : 
+                    '<span style="color:green">OK</span>') . '</td>';
+                echo '</tr>';
+            }
+            echo '</table>';
+            
+            // Analyze VLOOKUP dependencies
+            echo '<h3>VLOOKUP Dependency Analysis:</h3>';
+            $lookupCells = [];
+            foreach ($vlookups as $vl) {
+                if (preg_match('/VLOOKUP\s*\(\s*([^,]+),/i', $vl['formula'], $matches)) {
+                    $lookupRef = trim($matches[1]);
+                    $lookupRef = str_replace('$', '', $lookupRef);
+                    if (preg_match('/^[A-Z]+\d+$/i', $lookupRef)) {
+                        $lookupCells[$lookupRef] = ($lookupCells[$lookupRef] ?? 0) + 1;
+                    }
+                }
+            }
+            
+            if ($lookupCells) {
+                echo '<p>Cells used as VLOOKUP lookup values:</p>';
+                echo '<ul>';
+                foreach ($lookupCells as $cell => $count) {
+                    echo "<li><strong>$cell</strong> - used in $count VLOOKUP formula(s)</li>";
+                }
+                echo '</ul>';
+            }
+        } else {
+            echo '<div class="warning">No VLOOKUP formulas found. They may not be properly imported.</div>';
+        }
+        ?>
+        
+        <h2>🔄 3. Dependency Chain Test</h2>
+        <?php
+        // Test specific cells
+        $testCells = ['D4', 'D5', 'D3', 'P3'];
+        
+        foreach ($testCells as $testCell) {
+            echo "<h3>Testing cell: <span class='cell-ref'>$testCell</span></h3>";
+            
+            // Get current value
+            $stmt = $pdo->prepare("
+                SELECT value FROM cells_independent 
+                WHERE sheet_id = ? AND cell_address = ?
+            ");
+            $stmt->execute([$sheetId, $testCell]);
+            $value = $stmt->fetchColumn();
+            
+            if ($value !== false) {
+                echo "<p>Current value: <strong>" . htmlspecialchars($value) . "</strong></p>";
+            } else {
+                echo "<p>Cell is empty or doesn't exist in cells_independent</p>";
+            }
+            
+            // Find formulas that reference this cell
+            $stmt = $pdo->prepare("
+                SELECT cell_address, formula 
+                FROM cells_dependent 
+                WHERE sheet_id = ? 
+                AND (
+                    formula LIKE ? 
+                    OR formula LIKE ?
+                    OR formula LIKE ?
+                    OR dependencies LIKE ?
+                )
+            ");
+            
+            $patterns = [
+                '%' . $testCell . '%',
+                '%$' . str_replace('$', '', $testCell) . '%',
+                '%' . str_replace('$', '', $testCell) . '$%',
+                '%"' . str_replace('$', '', $testCell) . '"%'
+            ];
+            
+            $stmt->execute([$sheetId, ...$patterns]);
+            $dependents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if ($dependents) {
+                echo "<p>Found " . count($dependents) . " formula(s) that reference this cell:</p>";
+                echo '<ul>';
+                foreach ($dependents as $dep) {
+                    echo '<li>' . htmlspecialchars($dep['cell_address']) . ': <code class="formula">' . 
+                         htmlspecialchars(substr($dep['formula'], 0, 100)) . '...</code></li>';
+                }
+                echo '</ul>';
+            } else {
+                echo "<p style='color: orange'>⚠ No formulas found that reference this cell</p>";
+            }
+        }
+        ?>
+        
+        <h2>🔍 4. Database Structure Check</h2>
+        <?php
+        // Check if dependencies are properly stored
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) as total,
+                   SUM(CASE WHEN dependencies IS NOT NULL AND dependencies != '[]' THEN 1 ELSE 0 END) as with_deps
+            FROM cells_dependent 
+            WHERE sheet_id = ?
+        ");
+        $stmt->execute([$sheetId]);
+        $depStats = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        echo '<table>';
+        echo '<tr><th>Metric</th><th>Value</th><th>Status</th></tr>';
+        
+        // Total formulas
+        echo '<tr>';
+        echo '<td>Total Formula Cells</td>';
+        echo '<td>' . $depStats['total'] . '</td>';
+        echo '<td>' . ($depStats['total'] > 0 ? '✓ OK' : '✗ No formulas found') . '</td>';
+        echo '</tr>';
+        
+        // Formulas with dependencies
+        echo '<tr>';
+        echo '<td>Formulas with Dependencies Tracked</td>';
+        echo '<td>' . $depStats['with_deps'] . ' (' . 
+             ($depStats['total'] > 0 ? round($depStats['with_deps'] / $depStats['total'] * 100) : 0) . '%)</td>';
+        echo '<td>' . ($depStats['with_deps'] > 0 ? '✓ OK' : '⚠ Dependencies not tracked') . '</td>';
+        echo '</tr>';
+        
+        // Check VLOOKUP formulas
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) FROM cells_dependent 
+            WHERE sheet_id = ? AND formula_type = 'VLOOKUP'
+        ");
+        $stmt->execute([$sheetId]);
+        $vlookupCount = $stmt->fetchColumn();
+        
+        echo '<tr>';
+        echo '<td>VLOOKUP Formulas</td>';
+        echo '<td>' . $vlookupCount . '</td>';
+        echo '<td>' . ($vlookupCount > 0 ? '✓ OK' : '✗ No VLOOKUPs found') . '</td>';
+        echo '</tr>';
+        
+        // Check data validations
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM data_validations WHERE sheet_id = ?");
+        $stmt->execute([$sheetId]);
+        $validationCount = $stmt->fetchColumn();
+        
+        echo '<tr>';
+        echo '<td>Data Validations (Dropdowns)</td>';
+        echo '<td>' . $validationCount . '</td>';
+        echo '<td>' . ($validationCount > 0 ? '✓ OK' : '✗ No validations found') . '</td>';
+        echo '</tr>';
+        
+        echo '</table>';
+        ?>
+        
+        <h2>💡 5. Recommendations</h2>
+        <?php
+        $issues = [];
+        
+        if ($depStats['with_deps'] == 0) {
+            $issues[] = "Dependencies are not being tracked. The import process may not be extracting cell references from formulas.";
+        }
+        
+        if ($vlookupCount == 0) {
+            $issues[] = "No VLOOKUP formulas found. Check if they're being imported with the correct formula_type.";
+        }
+        
+        if ($validationCount == 0) {
+            $issues[] = "No data validations found. Dropdown lists may not be imported correctly.";
+        }
+        
+        if (empty($lookupCells)) {
+            $issues[] = "VLOOKUP formulas don't seem to reference typical dropdown cells (D4, D5, etc.)";
+        }
+        
+        if ($issues) {
+            echo '<div class="error"><strong>Issues Found:</strong><ul>';
+            foreach ($issues as $issue) {
+                echo '<li>' . $issue . '</li>';
+            }
+            echo '</ul></div>';
+            
+            echo '<div class="warning"><strong>To fix these issues:</strong><ol>';
+            echo '<li>Re-import your Excel file with an updated import script that properly extracts dependencies</li>';
+            echo '<li>Ensure VLOOKUP formulas are marked with formula_type = "VLOOKUP"</li>';
+            echo '<li>Make sure data validations are imported into the data_validations table</li>';
+            echo '<li>Update the dependencies JSON column with extracted cell references</li>';
+            echo '</ol></div>';
+        } else {
+            echo '<div class="success">✓ Database structure looks good! If updates still aren\'t working, check the update_cell.php and recalculate.php scripts.</div>';
+        }
+        ?>
+        
+        <h2>📝 6. Sample SQL Queries for Manual Testing</h2>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px;">
+            <h3>Update a dropdown value manually:</h3>
+            <pre style="background: white; padding: 10px; border: 1px solid #ddd;">
+UPDATE cells_independent 
+SET value = 'New Value Here' 
+WHERE sheet_id = <?php echo $sheetId; ?> AND cell_address = 'D4';
+            </pre>
+            
+            <h3>Find all cells that should recalculate when D4 changes:</h3>
+            <pre style="background: white; padding: 10px; border: 1px solid #ddd;">
+SELECT cell_address, formula 
+FROM cells_dependent 
+WHERE sheet_id = <?php echo $sheetId; ?>
+AND (formula LIKE '%D4%' OR formula LIKE '%$D$4%');
+            </pre>
+            
+            <h3>Check VLOOKUP formulas using D4 or D5:</h3>
+            <pre style="background: white; padding: 10px; border: 1px solid #ddd;">
+SELECT cell_address, formula, calculated_value
+FROM cells_dependent 
+WHERE sheet_id = <?php echo $sheetId; ?>
+AND formula_type = 'VLOOKUP'
+AND (formula LIKE '%($D$4%' OR formula LIKE '%($D$5%');
+            </pre>
+        </div>
+    </div>
+</body>
+</html>

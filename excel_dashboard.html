@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Web Application - Dynamic Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+        }
+
+        /* Header Navigation */
+        .header {
+            background: #217346;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sheet-tabs {
+            background: #fff;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 0 20px;
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+        }
+
+        .sheet-tab {
+            padding: 8px 20px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-bottom: none;
+            cursor: pointer;
+            position: relative;
+            top: 2px;
+            transition: all 0.3s;
+        }
+
+        .sheet-tab:hover {
+            background: #e8f0fe;
+        }
+
+        .sheet-tab.active {
+            background: #fff;
+            border-bottom: 2px solid #fff;
+            font-weight: bold;
+            color: #217346;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: #fff;
+            padding: 10px 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .formula-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .cell-reference {
+            background: #f8f9fa;
+            padding: 5px 15px;
+            border: 1px solid #dadce0;
+            min-width: 80px;
+            font-weight: bold;
+        }
+
+        .formula-input {
+            flex-grow: 1;
+            padding: 5px 10px;
+            border: 1px solid #dadce0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        /* Excel Grid */
+        .excel-container {
+            background: #fff;
+            margin: 20px;
+            border: 1px solid #dadce0;
+            overflow: auto;
+            height: calc(100vh - 200px);
+            position: relative;
+        }
+
+        .excel-grid {
+            border-collapse: collapse;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .excel-grid th {
+            background: #f8f9fa;
+            border: 1px solid #dadce0;
+            padding: 5px 10px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            min-width: 80px;
+            text-align: center;
+            font-weight: normal;
+            color: #5f6368;
+        }
+
+        .excel-grid th.row-header {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            min-width: 40px;
+            background: #f8f9fa;
+        }
+
+        .excel-grid td {
+            border: 1px solid #e0e0e0;
+            padding: 2px 5px;
+            min-width: 80px;
+            height: 25px;
+            position: relative;
+            background: #fff;
+        }
+
+        .excel-grid td.row-header {
+            background: #f8f9fa;
+            text-align: center;
+            font-weight: normal;
+            color: #5f6368;
+            position: sticky;
+            left: 0;
+            z-index: 9;
+        }
+
+        /* Cell Types */
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 2px;
+            font-size: 13px;
+            outline: none;
+            background: transparent;
+        }
+
+        .cell:focus {
+            outline: 2px solid #1a73e8;
+            outline-offset: -2px;
+        }
+
+        .cell.formula {
+            color: #1a73e8;
+            font-style: italic;
+        }
+
+        .cell.dropdown {
+            background: #fffef7;
+            cursor: pointer;
+            padding-right: 20px;
+        }
+
+        .dropdown-arrow {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #5f6368;
+        }
+
+        /* Cell Highlighting */
+        .cell-highlight {
+            background: #e8f0fe !important;
+        }
+
+        .cell-dependent {
+            background: #f0f8ff !important;
+        }
+
+        .cell-error {
+            background: #fee;
+            color: #d00;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #dadce0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            min-width: 150px;
+        }
+
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+
+        .dropdown-item.selected {
+            background: #e8f0fe;
+            font-weight: bold;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #f8f9fa;
+            padding: 5px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #dadce0;
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            gap: 5px;
+        }
+
+        .status-item strong {
+            color: #202124;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #217346;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+            </svg>
+            Excel Web Application
+        </h1>
+        <div class="header-actions">
+            <select id="workbookSelect" onchange="loadWorkbook(this.value)">
+                <option value="">Select Workbook...</option>
+            </select>
+            <button onclick="recalculateAll()">♻️ Recalculate All</button>
+        </div>
+    </div>
+
+    <!-- Sheet Tabs -->
+    <div class="sheet-tabs" id="sheetTabs">
+        <!-- Dynamically populated -->
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="formula-bar">
+            <div class="cell-reference" id="cellReference">A1</div>
+            <span>ƒx</span>
+            <input type="text" class="formula-input" id="formulaInput" placeholder="Enter formula or value...">
+            <button onclick="applyFormula()">✓</button>
+        </div>
+    </div>
+
+    <!-- Excel Grid Container -->
+    <div class="excel-container">
+        <table class="excel-grid" id="excelGrid">
+            <!-- Dynamically populated -->
+        </table>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-left">
+            <div class="status-item">
+                <span>Cells:</span>
+                <strong id="cellCount">0</strong>
+            </div>
+            <div class="status-item">
+                <span>Formulas:</span>
+                <strong id="formulaCount">0</strong>
+            </div>
+            <div class="status-item">
+                <span>Status:</span>
+                <strong id="status">Ready</strong>
+            </div>
+        </div>
+        <div class="status-right">
+            <span id="lastUpdate">Last updated: Never</span>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Dropdown Menu (Hidden by default) -->
+    <div class="dropdown-menu" id="dropdownMenu" style="display: none;">
+        <!-- Dynamically populated -->
+    </div>
+
+    <script>
+        // Global Variables
+        let currentWorkbook = null;
+        let currentSheet = null;
+        let sheets = {};
+        let cells = {};
+        let formulas = {};
+        let dependencies = {};
+        let validations = {};
+        let selectedCell = null;
+
+        // Initialize Application
+        window.onload = function() {
+            loadWorkbooks();
+        };
+
+        // Load available workbooks
+        async function loadWorkbooks() {
+            try {
+                const response = await fetch('api/get_workbooks.php');
+                const workbooks = await response.json();
+                
+                const select = document.getElementById('workbookSelect');
+                workbooks.forEach(wb => {
+                    const option = document.createElement('option');
+                    option.value = wb.id;
+                    option.textContent = wb.filename;
+                    select.appendChild(option);
+                });
+                
+                // Auto-load first workbook
+                if (workbooks.length > 0) {
+                    loadWorkbook(workbooks[0].id);
+                }
+            } catch (error) {
+                console.error('Error loading workbooks:', error);
+            }
+        }
+
+        // Load specific workbook
+        async function loadWorkbook(workbookId) {
+            if (!workbookId) return;
+            
+            showLoading(true);
+            currentWorkbook = workbookId;
+            
+            try {
+                // Load sheets
+                const sheetsResponse = await fetch(`api/get_sheets.php?workbook_id=${workbookId}`);
+                sheets = await sheetsResponse.json();
+                
+                // Render sheet tabs
+                renderSheetTabs();
+                
+                // Load first sheet
+                if (sheets.length > 0) {
+                    loadSheet(sheets[0].id);
+                }
+            } catch (error) {
+                console.error('Error loading workbook:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Render sheet tabs
+        function renderSheetTabs() {
+            const container = document.getElementById('sheetTabs');
+            container.innerHTML = '';
+            
+            sheets.forEach(sheet => {
+                const tab = document.createElement('div');
+                tab.className = 'sheet-tab';
+                tab.textContent = sheet.sheet_name;
+                tab.onclick = () => loadSheet(sheet.id);
+                tab.id = `sheet-tab-${sheet.id}`;
+                container.appendChild(tab);
+            });
+        }
+
+        // Load specific sheet
+        async function loadSheet(sheetId) {
+            showLoading(true);
+            currentSheet = sheetId;
+            
+            // Update active tab
+            document.querySelectorAll('.sheet-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(`sheet-tab-${sheetId}`).classList.add('active');
+            
+            try {
+                // Load cells
+                const cellsResponse = await fetch(`api/get_cells.php?sheet_id=${sheetId}`);
+                const cellData = await cellsResponse.json();
+                
+                // Load validations
+                const validationsResponse = await fetch(`api/get_validations.php?sheet_id=${sheetId}`);
+                validations = await validationsResponse.json();
+                
+                // Process cells
+                processCellData(cellData);
+                
+                // Render grid
+                renderGrid();
+                
+                // Update status
+                updateStatus();
+                
+            } catch (error) {
+                console.error('Error loading sheet:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Process cell data
+        function processCellData(cellData) {
+            cells = {};
+            formulas = {};
+            dependencies = {};
+            
+            cellData.forEach(cell => {
+                const key = cell.cell_address;
+                cells[key] = cell;
+                
+                if (cell.formula) {
+                    formulas[key] = cell.formula;
+                    
+                    // Parse dependencies
+                    if (cell.dependencies) {
+                        const deps = JSON.parse(cell.dependencies);
+                        dependencies[key] = deps;
+                        
+                        // Create reverse dependencies
+                        deps.forEach(dep => {
+                            if (!dependencies[dep]) {
+                                dependencies[dep] = [];
+                            }
+                            dependencies[dep].push(key);
+                        });
+                    }
+                }
+            });
+        }
+
+        // Render Excel grid
+        function renderGrid() {
+            const grid = document.getElementById('excelGrid');
+            grid.innerHTML = '';
+            
+            // Find grid dimensions
+            let maxRow = 50; // Default rows
+            let maxCol = 26; // Default to Z column
+            
+            Object.keys(cells).forEach(addr => {
+                const match = addr.match(/([A-Z]+)(\d+)/);
+                if (match) {
+                    const col = match[1];
+                    const row = parseInt(match[2]);
+                    maxRow = Math.max(maxRow, row);
+                    maxCol = Math.max(maxCol, columnToNumber(col));
+                }
+            });
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            const cornerCell = document.createElement('th');
+            cornerCell.className = 'row-header';
+            headerRow.appendChild(cornerCell);
+            
+            for (let col = 1; col <= maxCol; col++) {
+                const th = document.createElement('th');
+                th.textContent = numberToColumn(col);
+                headerRow.appendChild(th);
+            }
+            grid.appendChild(headerRow);
+            
+            // Create data rows
+            for (let row = 1; row <= maxRow; row++) {
+                const tr = document.createElement('tr');
+                
+                // Row header
+                const rowHeader = document.createElement('td');
+                rowHeader.className = 'row-header';
+                rowHeader.textContent = row;
+                tr.appendChild(rowHeader);
+                
+                // Data cells
+                for (let col = 1; col <= maxCol; col++) {
+                    const td = document.createElement('td');
+                    const cellAddr = numberToColumn(col) + row;
+                    const cellData = cells[cellAddr];
+                    
+                    if (cellData) {
+                        const input = createCellInput(cellAddr, cellData);
+                        td.appendChild(input);
+                        
+                        // Add dropdown arrow if validation exists
+                        if (hasValidation(cellAddr)) {
+                            const arrow = document.createElement('span');
+                            arrow.className = 'dropdown-arrow';
+                            arrow.textContent = '▼';
+                            td.appendChild(arrow);
+                            td.style.position = 'relative';
+                        }
+                        
+                        // Highlight formula cells
+                        if (cellData.formula) {
+                            td.classList.add('cell-dependent');
+                        }
+                    } else {
+                        const input = createCellInput(cellAddr, null);
+                        td.appendChild(input);
+                    }
+                    
+                    td.id = `cell-${cellAddr}`;
+                    tr.appendChild(td);
+                }
+                
+                grid.appendChild(tr);
+            }
+        }
+
+        // Create cell input element
+        function createCellInput(cellAddr, cellData) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'cell';
+            input.id = `input-${cellAddr}`;
+            
+            if (cellData) {
+                input.value = cellData.formatted_value || cellData.value || '';
+                
+                if (cellData.formula) {
+                    input.classList.add('formula');
+                    input.title = cellData.formula;
+                }
+                
+                if (cellData.error_message) {
+                    input.classList.add('cell-error');
+                    input.value = cellData.error_message;
+                }
+            }
+            
+            // Event handlers
+            input.onfocus = () => selectCell(cellAddr);
+            input.onchange = () => updateCell(cellAddr, input.value);
+            input.onkeydown = (e) => handleCellKeydown(e, cellAddr);
+            
+            // Dropdown handling
+            if (hasValidation(cellAddr)) {
+                input.classList.add('dropdown');
+                input.onclick = () => showDropdown(cellAddr, input);
+                input.readOnly = true;
+            }
+            
+            return input;
+        }
+
+        // Check if cell has validation
+        function hasValidation(cellAddr) {
+            return validations.some(v => {
+                const range = v.cell_range;
+                // Simple check - can be enhanced for ranges
+                return range.includes(cellAddr);
+            });
+        }
+
+        // Show dropdown menu
+        function showDropdown(cellAddr, input) {
+            const validation = validations.find(v => {
+                if (!v.cell_range) return false;
+                // Check if cell address matches the validation range
+                return v.cell_range.includes(cellAddr);
+            });
+            
+            if (!validation) {
+                console.log('No validation found for', cellAddr);
+                return;
+            }
+            
+            const menu = document.getElementById('dropdownMenu');
+            menu.innerHTML = '';
+            
+            // Parse validation list
+            let items = [];
+            
+            // Try to get items from validation_list first
+            if (validation.validation_list) {
+                try {
+                    // Parse JSON array
+                    const parsed = JSON.parse(validation.validation_list);
+                    if (Array.isArray(parsed)) {
+                        items = parsed;
+                    } else if (parsed) {
+                        items = [parsed];
+                    }
+                } catch (e) {
+                    // If not JSON, try comma-separated
+                    items = validation.validation_list.split(',').map(item => item.trim());
+                }
+            } 
+            
+            // If no items yet, try validation_formula
+            if (items.length === 0 && validation.validation_formula) {
+                // This is a range reference like 'List Aircraft'!$R$3:$R$42
+                items = getValidationItemsFromRange(validation.validation_formula);
+            }
+            
+            // If still no items, provide defaults
+            if (items.length === 0) {
+                console.log('No items found for validation:', validation);
+                items = ['No options available'];
+            }
+            
+            // Create dropdown items
+            items.forEach(item => {
+                if (!item || item === null) return;
+                
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.textContent = String(item);
+                if (input.value === String(item)) {
+                    div.classList.add('selected');
+                }
+                div.onclick = () => {
+                    input.value = String(item);
+                    updateCell(cellAddr, String(item));
+                    menu.style.display = 'none';
+                };
+                menu.appendChild(div);
+            });
+            
+            // Position dropdown
+            const rect = input.getBoundingClientRect();
+            menu.style.left = rect.left + 'px';
+            menu.style.top = rect.bottom + 'px';
+            menu.style.display = 'block';
+            
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', closeDropdown);
+            }, 100);
+        }
+
+        // Get validation items from range formula
+        function getValidationItemsFromRange(formula) {
+            // For now, we need to fetch the actual values from the database
+            // This would require an API call to get the range values
+            
+            // Parse the formula to get sheet and range
+            const match = formula.match(/(?:'([^']+)'!)?([A-Z$]+\d+:[A-Z$]+\d+)/);
+            if (!match) {
+                return [];
+            }
+            
+            const sheetName = match[1];
+            const range = match[2];
+            
+            // For now, return empty array - you'd need to make an API call here
+            console.log('Need to fetch range:', sheetName, range);
+            
+            // Make synchronous request (not ideal but simple for now)
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `api/get_range_values.php?sheet=${sheetName}&range=${range}`, false);
+                xhr.send();
+                
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    return response.values || [];
+                }
+            } catch (e) {
+                console.error('Error fetching range values:', e);
+            }
+            
+            return [];
+        }
+
+        // Close dropdown
+        function closeDropdown(e) {
+            const menu = document.getElementById('dropdownMenu');
+            if (!menu.contains(e.target)) {
+                menu.style.display = 'none';
+                document.removeEventListener('click', closeDropdown);
+            }
+        }
+
+        // Get validation items from formula
+        function getValidationItems(formula) {
+            // This would fetch from the referenced range
+            // For now, return sample data
+            return ['Option 1', 'Option 2', 'Option 3'];
+        }
+
+        // Select cell
+        function selectCell(cellAddr) {
+            selectedCell = cellAddr;
+            document.getElementById('cellReference').textContent = cellAddr;
+            
+            const cellData = cells[cellAddr];
+            const formulaInput = document.getElementById('formulaInput');
+            
+            if (cellData && cellData.formula) {
+                formulaInput.value = cellData.formula;
+            } else if (cellData) {
+                formulaInput.value = cellData.value || '';
+            } else {
+                formulaInput.value = '';
+            }
+            
+            // Highlight dependencies
+            highlightDependencies(cellAddr);
+        }
+
+        // Update cell value
+        async function updateCell(cellAddr, value) {
+            showLoading(true);
+            updateStatus('Updating...');
+            
+            try {
+                // Determine if it's a formula
+                const isFormula = value.startsWith('=');
+                
+                // Send update to server
+                const response = await fetch('api/update_cell.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet_id: currentSheet,
+                        cell_address: cellAddr,
+                        value: value,
+                        is_formula: isFormula
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update local cell data
+                    cells[cellAddr] = result.cell;
+                    
+                    // Recalculate dependent cells
+                    if (result.affected_cells) {
+                        await recalculateCells(result.affected_cells);
+                    }
+                    
+                    // Update display
+                    updateCellDisplay(cellAddr, result.cell);
+                    
+                    // Update last modified time
+                    document.getElementById('lastUpdate').textContent = 
+                        'Last updated: ' + new Date().toLocaleTimeString();
+                }
+                
+            } catch (error) {
+                console.error('Error updating cell:', error);
+                alert('Error updating cell: ' + error.message);
+            } finally {
+                showLoading(false);
+                updateStatus('Ready');
+            }
+        }
+
+        // Recalculate cells
+        async function recalculateCells(cellAddresses) {
+            updateStatus('Recalculating...');
+            
+            try {
+                const response = await fetch('api/recalculate.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet_id: currentSheet,
+                        cells: cellAddresses
+                    })
+                });
+                
+                const results = await response.json();
+                
+                // Update all recalculated cells
+                results.forEach(result => {
+                    cells[result.cell_address] = result;
+                    updateCellDisplay(result.cell_address, result);
+                });
+                
+            } catch (error) {
+                console.error('Error recalculating:', error);
+            }
+        }
+
+        // Update cell display
+        function updateCellDisplay(cellAddr, cellData) {
+            const input = document.getElementById(`input-${cellAddr}`);
+            if (input) {
+                input.value = cellData.formatted_value || cellData.value || '';
+                
+                // Update classes
+                input.classList.toggle('formula', !!cellData.formula);
+                input.classList.toggle('cell-error', !!cellData.error_message);
+                
+                if (cellData.formula) {
+                    input.title = cellData.formula;
+                }
+            }
+        }
+
+        // Highlight dependencies
+        function highlightDependencies(cellAddr) {
+            // Clear previous highlights
+            document.querySelectorAll('.cell-highlight').forEach(el => {
+                el.classList.remove('cell-highlight');
+            });
+            
+            // Highlight dependencies
+            if (dependencies[cellAddr]) {
+                dependencies[cellAddr].forEach(dep => {
+                    const td = document.getElementById(`cell-${dep}`);
+                    if (td) {
+                        td.classList.add('cell-highlight');
+                    }
+                });
+            }
+        }
+
+        // Handle cell keyboard navigation
+        function handleCellKeydown(e, cellAddr) {
+            const match = cellAddr.match(/([A-Z]+)(\d+)/);
+            if (!match) return;
+            
+            const col = columnToNumber(match[1]);
+            const row = parseInt(match[2]);
+            let newAddr = null;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (row > 1) newAddr = numberToColumn(col) + (row - 1);
+                    break;
+                case 'ArrowDown':
+                    newAddr = numberToColumn(col) + (row + 1);
+                    break;
+                case 'ArrowLeft':
+                    if (col > 1) newAddr = numberToColumn(col - 1) + row;
+                    break;
+                case 'ArrowRight':
+                    newAddr = numberToColumn(col + 1) + row;
+                    break;
+                case 'Enter':
+                    newAddr = numberToColumn(col) + (row + 1);
+                    break;
+            }
+            
+            if (newAddr) {
+                e.preventDefault();
+                const input = document.getElementById(`input-${newAddr}`);
+                if (input) {
+                    input.focus();
+                }
+            }
+        }
+
+        // Recalculate all formulas
+        async function recalculateAll() {
+            showLoading(true);
+            updateStatus('Recalculating all formulas...');
+            
+            try {
+                const response = await fetch('api/recalculate_all.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sheet_id: currentSheet
+                    })
+                });
+                
+                const results = await response.json();
+                
+                // Reload sheet to get fresh data
+                await loadSheet(currentSheet);
+                
+                updateStatus('Recalculation complete');
+                
+            } catch (error) {
+                console.error('Error recalculating all:', error);
+                updateStatus('Error during recalculation');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Apply formula from formula bar
+        function applyFormula() {
+            if (!selectedCell) return;
+            
+            const formulaInput = document.getElementById('formulaInput');
+            updateCell(selectedCell, formulaInput.value);
+        }
+
+        // Utility Functions
+        function columnToNumber(col) {
+            let num = 0;
+            for (let i = 0; i < col.length; i++) {
+                num = num * 26 + (col.charCodeAt(i) - 64);
+            }
+            return num;
+        }
+
+        function numberToColumn(num) {
+            let col = '';
+            while (num > 0) {
+                num--;
+                col = String.fromCharCode(65 + (num % 26)) + col;
+                num = Math.floor(num / 26);
+            }
+            return col;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        function updateStatus(message = 'Ready') {
+            document.getElementById('status').textContent = message;
+            
+            if (!message || message === 'Ready') {
+                const cellCount = Object.keys(cells).length;
+                const formulaCount = Object.keys(formulas).length;
+                
+                document.getElementById('cellCount').textContent = cellCount;
+                document.getElementById('formulaCount').textContent = formulaCount;
+            }
+        }
+    </script>
+</body>
+</html>
